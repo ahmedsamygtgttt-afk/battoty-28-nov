@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html_code = r"""<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -596,17 +596,13 @@
     <div class="top-bar" id="top-bar">
         <button class="minimal-btn" id="audio-toggle" onclick="toggleAudio()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-            <span id="audio-label">إيقاف الموسيقى</span>
+            <span id="audio-label">تشغيل النبض الموسيقي</span>
         </button>
         <button class="minimal-btn" id="theme-toggle" onclick="switchTheme()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
             <span id="theme-label">إضاءة: مخملي داكن</span>
         </button>
     </div>
-
-    <audio id="ambient-music" loop>
-        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf756.mp3?filename=romantic-guitars-112134.mp3" type="audio/mpeg">
-    </audio>
 
     <div id="view-1" class="view active">
         <div class="luxury-card">
@@ -676,13 +672,14 @@
         <div class="luxury-card">
             <span class="eyebrow">28 NOVEMBER • BIRTHDAY LETTER</span>
             <h2 class="serif-heading">إلى بنت قلبي الغالية</h2>
-            <div class="editorial-letter" id="letter-body">
-                في اليوم ده (28/11) اتولدت أجمل وأحن وألطف إنسانة عرفتها في حياتي.. ومن يوم 20/7/2026 اللي حبينا بعض فيه وكل حاجة في حياتي بقى ليها طعم ولون تاني.
-                أنتِ بنت قلبي الغالية.. بنتي وأمي وصحبتي وحبيبتي وكل حاجة ليا، وأمان قلبي وضحكتي اللي بتهون عليا الدنيا كلها. كل سنة وأنتِ طيبة يا نور عيني، وكل سنة وأنتِ معايا وجنبي وسانداني.
-                أنا مهما قولت كلمة "بحبك" مش هتوصف حبي ليكي قد إيه، ولا هتوفي جزء صغير من مكانتك جوايا، بس أنتِ عارفة كويس إني بعشقك وبموت فيكي مش بحبك بس، عشان أنتِ أغلى حاجة عندي في الدنيا دي كلها.
-                ربنا يحفظك ويديمك ليا نعمة في حياتي العمر كله وما يحرمنيش من وجودك أبداً.
-                بحبك يا بنت قلبي.
-            </div>
+            <div class="editorial-letter" id="letter-body">في اليوم ده (28/11) اتولدت أجمل وأحن وألطف إنسانة عرفتها في حياتي.. ومن يوم 20/7/2026 اللي حبينا بعض فيه وكل حاجة في حياتي بقى ليها طعم ولون تاني.
+
+أنتِ بنت قلبي الغالية.. بنتي وأمي وصحبتي وحبيبتي وكل حاجة ليا، وأمان قلبي وضحكتي اللي بتهون عليا الدنيا كلها. كل سنة وأنتِ طيبة يا نور عيني، وكل سنة وأنتِ معايا وجنبي وسانداني.
+
+أنا مهما قولت كلمة "بحبك" مش هتوصف حبي ليكي قد إيه، ولا هتوفي جزء صغير من مكانتك جوايا، بس أنتِ عارفة كويس إني بعشقك وبموت فيكي مش بحبك بس، عشان أنتِ أغلى حاجة عندي في الدنيا دي كلها.
+
+ربنا يحفظك ويديمك ليا نعمة في حياتي العمر كله وما يحرمنيش من وجودك أبداً.
+بحبك يا بنت قلبي.</div>
             <div style="display:flex; gap:8px; margin-bottom:10px;">
                 <button class="secondary-outline-btn" style="flex:1;" onclick="replayTypewriter()">إعادة قراءتها حرفاً بحرف</button>
                 <button class="secondary-outline-btn" style="flex:1;" onclick="showFullLetter()">عرض النص كاملاً</button>
@@ -935,30 +932,63 @@
         updateTimers();
         setInterval(updateTimers, 1000);
 
-        const music = document.getElementById("ambient-music");
+        let audioCtx = null;
+        let chimeInterval = null;
+        let isAudioOn = false;
+
+        function playSoftChime() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const notes = [523.25, 659.25, 783.99, 659.25];
+            const freq = notes[Math.floor(Math.random() * notes.length)];
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.025, audioCtx.currentTime + 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.4);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.45);
+        }
+
+        function startChimes() {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            if (!audioCtx) audioCtx = new AudioContextClass();
+            if (audioCtx.state === "suspended") audioCtx.resume();
+            clearInterval(chimeInterval);
+            playSoftChime();
+            chimeInterval = setInterval(playSoftChime, 2200);
+            isAudioOn = true;
+            document.getElementById("audio-label").innerText = "إيقاف النبض الموسيقي";
+        }
+
+        function stopChimes() {
+            clearInterval(chimeInterval);
+            isAudioOn = false;
+            document.getElementById("audio-label").innerText = "تشغيل النبض الموسيقي";
+        }
+
+        function toggleAudio() {
+            if (isAudioOn) {
+                stopChimes();
+            } else {
+                startChimes();
+            }
+        }
+
         function verifyAccess() {
             const val = document.getElementById("secret-pass").value.trim();
             if (val === "28/11/2008") {
-                music.play().catch(() => {});
+                startChimes();
                 document.getElementById("top-bar").classList.add("visible");
                 document.getElementById("bottom-nav").classList.add("visible");
                 navigateTo(2);
                 assembleHeartWords();
             } else {
                 document.getElementById("pass-feedback").innerText = "رمز العبور غير صحيح.. التلميح: تاريخ ميلادك المميز";
-            }
-        }
-
-        let isAudioOn = true;
-        function toggleAudio() {
-            if (isAudioOn) {
-                music.pause();
-                document.getElementById("audio-label").innerText = "تشغيل الموسيقى";
-                isAudioOn = false;
-            } else {
-                music.play();
-                document.getElementById("audio-label").innerText = "إيقاف الموسيقى";
-                isAudioOn = true;
             }
         }
 
@@ -1023,17 +1053,10 @@
         }
 
         const fullLetterText =
-            "في اليوم ده (28/11) اتولدت أجمل وأحن وألطف إنسانة عرفتها في حياتي.. ومن يوم 20/7/2026 اللي حبينا بعض فيه وكل حاجة في حياتي بقى ليها طعم ولون تاني.
-
-" +
-            "أنتِ بنت قلبي الغالية.. بنتي وأمي وصحبتي وحبيبتي وكل حاجة ليا، وأمان قلبي وضحكتي اللي بتهون عليا الدنيا كلها. كل سنة وأنتِ طيبة يا نور عيني، وكل سنة وأنتِ معايا وجنبي وسانداني.
-
-" +
-            "أنا مهما قولت كلمة "بحبك" مش هتوصف حبي ليكي قد إيه، ولا هتوفي جزء صغير من مكانتك جوايا، بس أنتِ عارفة كويس إني بعشقك وبموت فيكي مش بحبك بس، عشان أنتِ أغلى حاجة عندي في الدنيا دي كلها.
-
-" +
-            "ربنا يحفظك ويديمك ليا نعمة في حياتي العمر كله وما يحرمنيش من وجودك أبداً.
-بحبك يا بنت قلبي.";
+            "في اليوم ده (28/11) اتولدت أجمل وأحن وألطف إنسانة عرفتها في حياتي.. ومن يوم 20/7/2026 اللي حبينا بعض فيه وكل حاجة في حياتي بقى ليها طعم ولون تاني.\n\n" +
+            "أنتِ بنت قلبي الغالية.. بنتي وأمي وصحبتي وحبيبتي وكل حاجة ليا، وأمان قلبي وضحكتي اللي بتهون عليا الدنيا كلها. كل سنة وأنتِ طيبة يا نور عيني، وكل سنة وأنتِ معايا وجنبي وسانداني.\n\n" +
+            "أنا مهما قولت كلمة \"بحبك\" مش هتوصف حبي ليكي قد إيه، ولا هتوفي جزء صغير من مكانتك جوايا، بس أنتِ عارفة كويس إني بعشقك وبموت فيكي مش بحبك بس، عشان أنتِ أغلى حاجة عندي في الدنيا دي كلها.\n\n" +
+            "ربنا يحفظك ويديمك ليا نعمة في حياتي العمر كله وما يحرمنيش من وجودك أبداً.\nبحبك يا بنت قلبي.";
 
         let typeInterval;
         function showFullLetter() {
@@ -1092,3 +1115,9 @@
     </script>
 </body>
 </html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_code)
+
+print("Done writing clean index.html")
